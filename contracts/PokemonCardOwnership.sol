@@ -16,6 +16,8 @@ contract PokemonCardOwnership is PokemonCardAttack, ERC721 {
 	}
 
 	function _transfer(address _from, address _to, uint256 _tokenId) private {
+		require(_to != address(0));
+		require(_to != address(this));
 		ownerPokemonCount[_to] = ownerPokemonCount[_to].add(1);
 		ownerPokemonCount[_from] = ownerPokemonCount[_from].sub(1);
 		pokemonToOwner[_tokenId] = _to;

@@ -8,6 +8,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 
 	modifier aboveLevel(uint _level, uint _pokemonId) {
 		require(pokemons[_pokemonId].level >= _level);
+		_;
 	}
 
 	function setLevelUpFee(uint _fee) external onlyOwner {
@@ -17,7 +18,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 	function levelUp(uint _pokemonId) external payable {
 		require(msg.value == levelUpFee);
 		pendingWithdrawals[address(this)] += msg.value;
-		pokemons[_pokemonId].level = zombies[_zombieId].level.add(1);
+		pokemons[_pokemonId].level = pokemons[_pokemonId].level.add(1);
 	}
 
 	function changeName(uint _pokemonId, string calldata _newName) external aboveLevel(2, _pokemonId) {
