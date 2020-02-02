@@ -1,14 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-	
 import "./PokemonCardFactory.sol";
 
 contract PokemonCardBreeding is PokemonCardFactory {
-
-	modifier ownerOfPokemon(uint _pokemonId) {
-		require(msg.sender == pokemonToOwner[_pokemonId]);
-		_;
-	}
 
 	modifier ownerOfBothPokemons(uint _pokemon1Id, uint _pokemon2Id) {
 		require(msg.sender == pokemonToOwner[_pokemon1Id]);
