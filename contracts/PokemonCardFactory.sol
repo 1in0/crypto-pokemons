@@ -1,9 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract PokemonCardFactory is Ownable {
+contract PokemonCardFactory is Base {
 	using SafeMath for uint256;
 	using SafeMath32 for uint32;
 	using SafeMath16 for uint16;
@@ -15,6 +14,7 @@ contract PokemonCardFactory is Ownable {
 	uint battleCooldownTime = 1 days;
 	uint breedingCooldownTime = 10 days;
 
+	enum Species { BULBASAUR, CHARMANDER, SQUIRTLE }
 
 	struct Pokemon {
 		string name;
@@ -28,6 +28,10 @@ contract PokemonCardFactory is Ownable {
 
 	mapping (uint => address) public pokemonToOwner;
 	mapping (address => uint) ownerPokemonCount;
+
+	function createStarterPokemon(string memory _name, Species specie) public {
+
+	}
 
 	function _createPokemon(string memory _name, uint _dna) internal {
 		uint id = pokemons.push(Pokemon(_name, _dna, 1, uint32(now + battleCooldownTime), uint32(now + breedingCooldownTime))) - 1;
