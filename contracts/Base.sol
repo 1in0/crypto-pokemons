@@ -24,8 +24,8 @@ contract Base is Ownable {
 	}
 
 	mapping (uint => uint) internal evolution;
-    
 	BasePokemon[] basePokemons;
+
 
 	constructor() public {
 		basePokemons.push(BasePokemon("Bulbasaur", 1, "Grass", "Poison", 582, false, BaseStats(45, 49, 49, 65, 65, 45)));
@@ -194,5 +194,73 @@ contract Base is Ownable {
 		basePokemons.push(BasePokemon("MewtwoMega Mewtwo X", 150, "Psychic", "Fighting", 120, true, BaseStats(106, 190, 100, 154, 100, 130)));
 		basePokemons.push(BasePokemon("MewtwoMega Mewtwo Y", 150, "Psychic", "nan", 120, true, BaseStats(106, 150, 70, 194, 120, 140)));
 		basePokemons.push(BasePokemon("Mew", 151, "Psychic", "nan", 300, false, BaseStats(100, 100, 100, 100, 100, 100)));
-	}
+
+
+		evolution[0] = 2;
+		evolution[4] = 5;
+		evolution[7] = 8;
+		evolution[10] = 11;
+		evolution[13] = 14;
+		evolution[16] = 17;
+		evolution[19] = 20;
+		evolution[21] = 22;
+		evolution[23] = 24;
+		evolution[25] = 26;
+		evolution[27] = 28;
+		evolution[29] = 30;
+		evolution[30] = 31;
+		evolution[32] = 33;
+		evolution[33] = 34;
+		evolution[35] = 36;
+		evolution[37] = 38;
+		evolution[39] = 40;
+		evolution[41] = 42;
+		evolution[43] = 44;
+		evolution[44] = 45;
+		evolution[46] = 47;
+		evolution[48] = 49;
+		evolution[50] = 51;
+		evolution[52] = 53;
+		evolution[54] = 55;
+		evolution[56] = 57;
+		evolution[58] = 59;
+		evolution[60] = 61;
+		evolution[61] = 62;
+		evolution[63] = 64;
+		evolution[64] = 65;
+		evolution[66] = 67;
+		evolution[67] = 68;
+		evolution[69] = 70;
+		evolution[70] = 71;
+		evolution[72] = 73;
+		evolution[74] = 75;
+		evolution[75] = 76;
+		evolution[77] = 78;
+		evolution[79] = 80;
+		evolution[81] = 82;
+		evolution[84] = 85;
+		evolution[86] = 87;
+		evolution[88] = 89;
+		evolution[90] = 91;
+		evolution[92] = 93;
+		evolution[94] = 94;
+		evolution[96] = 97;
+		evolution[98] = 99;
+		evolution[100] = 101;
+		evolution[102] = 103;
+		evolution[104] = 105;
+		evolution[109] = 110;
+		evolution[111] = 112;
+		evolution[116] = 117;
+		evolution[118] = 119;
+		evolution[120] = 121;
+		evolution[129] = 130;
+		evolution[133] = 134;
+		evolution[138] = 139;
+		evolution[140] = 141;
+		evolution[147] = 148;
+		evolution[149] = 149;
+}
+
+
 }
