@@ -59,12 +59,12 @@ contract PokemonCardFactory is Base {
 		}
 
 		BasePokemon memory basePokemon = basePokemons[_pokemonNumber];
-		basePokemon.stats.hp += variant[0];
-		basePokemon.stats.attack += variant[1];
-		basePokemon.stats.defense += variant[2];
-		basePokemon.stats.specialAttack += variant[3];
-		basePokemon.stats.specialDefense += variant[4];
-		basePokemon.stats.speed += variant[5];
+		basePokemon.stats.hp = basePokemon.stats.hp.add(variant[0]);
+		basePokemon.stats.attack = basePokemon.stats.attack.add(variant[1]);
+		basePokemon.stats.defense = basePokemon.stats.defense.add(variant[2]);
+		basePokemon.stats.specialAttack = basePokemon.stats.specialAttack.add(variant[3]);
+		basePokemon.stats.specialDefense = basePokemon.stats.specialDefense.add(variant[4]);
+		basePokemon.stats.speed = basePokemon.stats.speed.add(variant[5]);
 
 		Pokemon memory _pokemon = Pokemon({
 			nickname: _name,
@@ -98,11 +98,12 @@ contract PokemonCardFactory is Base {
 		_createPokemon(_nickname, randDna, 0, 0, _pokemonNumber);
 	}
 
-	function _breedPokemon(string memory _nickname, uint _dna, uint _fatherId, uint _motherId) internal {
+	function _breedPokemon(string memory _nickname, uint _fatherId, uint _motherId) internal {
 		Pokemon storage _mother = pokemons[_motherId];
 		uint _pokemonNumber = _mother.pokemonNumber;
 		uint _originPokemonNumber = origin[_pokemonNumber];
-		_createPokemon(_nickname, _dna, _fatherId, _motherId, _originPokemonNumber);
+		uint randDna = _generateRandomDna(_nickname);
+		_createPokemon(_nickname, randDna, _fatherId, _motherId, _originPokemonNumber);
 	}
 
 	modifier ownerOfPokemon(uint _pokemonId) {

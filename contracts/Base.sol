@@ -27,8 +27,13 @@ contract Base is Ownable {
 	mapping (uint => uint) internal origin;
 	BasePokemon[] basePokemons;
 
-
 	constructor() public {
+		_addBasePokemons();
+		_addEvolutions();
+		_addOrigins();
+	}
+
+	function _addBasePokemons() private {
 		basePokemons.push(BasePokemon("Bulbasaur", 1, "Grass", "Poison", 582, false, BaseStats(45, 49, 49, 65, 65, 45)));
 		basePokemons.push(BasePokemon("Ivysaur", 2, "Grass", "Poison", 495, false, BaseStats(60, 62, 63, 80, 80, 60)));
 		basePokemons.push(BasePokemon("Venusaur", 3, "Grass", "Poison", 375, false, BaseStats(80, 82, 83, 100, 100, 80)));
@@ -180,7 +185,9 @@ contract Base is Ownable {
 		basePokemons.push(BasePokemon("Dragonite", 149, "Dragon", "Flying", 300, false, BaseStats(91, 134, 95, 100, 100, 80)));
 		basePokemons.push(BasePokemon("Mewtwo", 150, "Psychic", "nan", 220, true, BaseStats(106, 110, 90, 154, 90, 130)));
 		basePokemons.push(BasePokemon("Mew", 151, "Psychic", "nan", 300, false, BaseStats(100, 100, 100, 100, 100, 100)));
+	}
 
+	function _addEvolutions() private {
 		evolution[1] = 2;
 		evolution[2] = 3;
 		evolution[4] = 5;
@@ -251,7 +258,9 @@ contract Base is Ownable {
 		evolution[140] = 141;
 		evolution[147] = 148;
 		evolution[148] = 149;
+	}
 
+	function _addOrigins() private {
 		origin[1] = 1;
 		origin[2] = 1;
 		origin[3] = 1;
@@ -403,6 +412,10 @@ contract Base is Ownable {
 		origin[149] = 147;
 		origin[150] = 150;
 		origin[151] = 151;
+	}
+
+	function max(uint a, uint b) private pure returns (uint) {
+		return a > b ? a : b;
 	}
 
 
