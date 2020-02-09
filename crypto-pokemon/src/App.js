@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PokemonCardFactory from "./contracts/PokemonCardFactory.json";
 import getWeb3 from "./getWeb3";
-import {Button, Form, Container} from 'react-bootstrap';
+import {Container} from 'react-bootstrap';
 import PokemonNavbar from "./components/PokemonNavbar";
 import StarterPokemonForm from "./StarterPokemonForm";
 import MyTeam from "./MyTeam";
