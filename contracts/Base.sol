@@ -31,6 +31,11 @@ contract Base is Ownable {
         return basePokemons[pokemonNumber-1].name;
     }
 
+    function getBasicPokemonInfo(uint pokemonNumber) public view returns (string memory, string memory, string memory, bool) {
+    	BasePokemon storage basePokemon = basePokemons[pokemonNumber-1];
+    	return (basePokemon.name, basePokemon.type1, basePokemon.type2, basePokemon.legendary);
+    }
+
 	constructor() public {
 		_addBasePokemons();
 		_addEvolutions();

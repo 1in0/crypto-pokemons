@@ -110,4 +110,8 @@ contract PokemonCardFactory is Base {
 		require(msg.sender == pokemonToOwner[_pokemonId]);
 		_;
 	}
+
+	function isNewTrainer() public view returns (bool) {
+		return (ownerPokemonCount[msg.sender] == 0);
+	}
 }
