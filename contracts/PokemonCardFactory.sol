@@ -35,7 +35,7 @@ contract PokemonCardFactory is Base {
 
 	Pokemon[] pokemons;
 
-	mapping (uint => address) public pokemonToOwner;
+	mapping (uint => address payable) public pokemonToOwner;
 	mapping (address => uint) ownerPokemonCount;
 
 	constructor() public {

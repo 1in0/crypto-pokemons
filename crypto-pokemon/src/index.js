@@ -8,10 +8,12 @@ import Marketplace from './Marketplace';
 import { Route, Link, BrowserRouter as Router } from 'react-router-dom'
 
 
+
+
 const routing = (
   <Router>
     <div>
-      <Route exact path="/" component={App} />
+      <Route exact path="/" render={(props) => <App {...props} myProps={myProps}/>} />
       <Route path="/team" component={App} />
       <Route path="/marketplace" component={Marketplace} />
     </div>

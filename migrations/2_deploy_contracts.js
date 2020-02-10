@@ -1,5 +1,5 @@
-var PokemonCardFactory = artifacts.require("PokemonCardFactory");
+var PokemonCardMarketplace = artifacts.require("PokemonCardMarketplace");
 
 module.exports = function(deployer) {
-  deployer.deploy(PokemonCardFactory);
+  deployer.deploy(PokemonCardMarketplace);
 };

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import PokemonCardFactory from "./contracts/PokemonCardFactory.json";
+import PokemonCardMarketplace from "./contracts/PokemonCardMarketplace.json";
 import getWeb3 from "./getWeb3";
 import {Container} from 'react-bootstrap';
 import PokemonNavbar from "./components/PokemonNavbar";
@@ -13,6 +13,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
+    console.log(props);
     this.handleTrainerChange = this.handleTrainerChange.bind(this);
   }
 
@@ -32,7 +33,7 @@ class App extends Component {
       const accounts = await web3.eth.getAccounts();
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
-      const deployedNetwork = PokemonCardFactory.networks[networkId];
+      const deployedNetwork = PokemonCardMarketplace.networks[networkId];
       var address;
       if (deployedNetwork && deployedNetwork.address) {
         address = deployedNetwork.address;
@@ -40,7 +41,7 @@ class App extends Component {
         address = "0x7de19b161b1c1eb8f92d9d642606db92324e6f0f";
       }
       const instance = new web3.eth.Contract(
-          PokemonCardFactory.abi,
+          PokemonCardMarketplace.abi,
           address,
       );
       // Set web3, accounts, and contract to the state, and then proceed with an
@@ -168,16 +169,24 @@ class App extends Component {
           </Container>
         </div>
       );
+    } else if (!!this.state.newTrainer) {
+      return (
+        <div className="App">
+          <PokemonNavbar/>
+          <Container> 
+            <StarterPokemonForm handleChange={this.handleTrainerChange} handleSubmit={this.createStarterPokemon}/>
+          </Container>
+        </div>
+      );
+    } else {
+      return (
+        <div className="App">
+          <PokemonNavbar/>
+        </div>
+      );
     }
 
-    return (
-      <div className="App">
-        <PokemonNavbar/>
-        <Container> 
-          <StarterPokemonForm handleChange={this.handleTrainerChange} handleSubmit={this.createStarterPokemon}/>
-        </Container>
-      </div>
-    );
+
   }
 }
 
