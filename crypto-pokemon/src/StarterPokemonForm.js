@@ -35,7 +35,8 @@ class StarterPokemonForm extends Component {
           name: "newTrainer",
           value: false
         }
-      })
+      });
+      this.props.handleSubmit(nickname, pokemonNumber);
     }
   }
 

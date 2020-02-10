@@ -38,6 +38,10 @@ contract PokemonCardFactory is Base {
 	mapping (uint => address) public pokemonToOwner;
 	mapping (address => uint) ownerPokemonCount;
 
+	constructor() public {
+		createStarterPokemon("Initial", 0);
+	}
+
 	function _generateRandomGender(string memory _str) private pure returns (bool) {
 		uint rand = uint(keccak256(abi.encodePacked(_str)));
 		return (rand % 2 == 0);
@@ -91,11 +95,11 @@ contract PokemonCardFactory is Base {
 		return id;
 	}
 
-	function createStarterPokemon(string memory _nickname, uint _pokemonNumber) public {
+	function createStarterPokemon(string memory _nickname, uint _pokemonNumber) public returns (uint){
 		require(ownerPokemonCount[msg.sender] == 0);
 		require(_pokemonNumber == 0 || _pokemonNumber == 3 || _pokemonNumber == 6);
 		uint randDna = _generateRandomDna(_nickname);
-		_createPokemon(_nickname, randDna, 0, 0, _pokemonNumber);
+		return _createPokemon(_nickname, randDna, 0, 0, _pokemonNumber);
 	}
 
 	function _breedPokemon(string memory _nickname, uint _fatherId, uint _motherId) internal {
@@ -113,5 +117,71 @@ contract PokemonCardFactory is Base {
 
 	function isNewTrainer() public view returns (bool) {
 		return (ownerPokemonCount[msg.sender] == 0);
+	}
+
+	function returnNumberOfPokemons() external view returns (uint) {
+		return ownerPokemonCount[msg.sender];
+	}
+
+	function returnTotalNumberOfPokemons() external view returns (uint) {
+		return pokemons.length;
+	}
+
+	function getPokemonCardsByOwner() external view returns (uint[] memory) {
+		uint[] memory result = new uint[](ownerPokemonCount[msg.sender]);
+		uint counter = 0;
+		for (uint i = 0; i < pokemons.length; i++) {
+			if (pokemonToOwner[i] == msg.sender) {
+				result[counter] = i;
+				counter = counter.add(1);
+			}
+		}
+		return result;
+	}
+
+	function getPokemonInfo(uint _pokemonId) external view returns (
+		string memory,
+		string memory,
+		string memory,
+		string memory,
+		uint32,
+		uint,
+		bool
+		) {
+
+		Pokemon storage _pokemon = pokemons[_pokemonId];
+
+		return (_pokemon.nickname, _pokemon.name, _pokemon.type1, _pokemon.type2, _pokemon.level,
+		 	_pokemon.pokemonNumber, _pokemon.legendary);
+	}
+
+	function getPokemonBreedingDetails(uint _pokemonId) external view returns (
+		uint32,
+		bool,
+		uint,
+		uint,
+		uint
+		) {
+		Pokemon storage _pokemon = pokemons[_pokemonId];
+
+		return (_pokemon.breedingReadyTime, _pokemon.gender, _pokemon.fatherId, _pokemon.motherId, _pokemon.breedingWithId);
+	}
+
+	function getPokemonBattleDetails(uint _pokemonId) external view returns (uint32) {
+		Pokemon storage _pokemon = pokemons[_pokemonId];
+		return _pokemon.battleReadyTime;
+	}
+
+	function getPokemonStats(uint _pokemonId) external view returns (
+		uint32,
+		uint32,
+		uint32,
+		uint32,
+		uint32,
+		uint32
+		) {
+		BaseStats storage stats = pokemons[_pokemonId].baseStats;
+
+		return (stats.hp, stats.attack, stats.defense, stats.specialAttack, stats.specialDefense, stats.speed);
 	}
 }

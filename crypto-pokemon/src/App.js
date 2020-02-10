@@ -9,7 +9,7 @@ import MyTeam from "./MyTeam";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, newTrainer: false };
+  state = { storageValue: 0, web3: null, accounts: null, contract: null, newTrainer: false, ownedPokemons: [], ownedPokemonsInfo: [] };
 
   constructor(props) {
     super(props);
@@ -37,7 +37,7 @@ class App extends Component {
       if (deployedNetwork && deployedNetwork.address) {
         address = deployedNetwork.address;
       } else {
-        address = "0x62fa1f2Eda9e1C1E3386Ccb40d49184ca6915F4f";
+        address = "0x7de19b161b1c1eb8f92d9d642606db92324e6f0f";
       }
       const instance = new web3.eth.Contract(
           PokemonCardFactory.abi,
@@ -45,33 +45,126 @@ class App extends Component {
       );
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, accounts, contract: instance }, this.checkNewTrainer);
     } catch (error) {
       // Catch any errors for any of the above operations.
       console.error(error);
     }
   };
 
-  runExample = async () => {
+  checkNewTrainer = async () => {
     const { accounts, contract } = this.state;
 
-    // Get the value from the contract to prove it worked.
-    const response = await contract.methods.getPokemonName(1).call();
-
-    const response2 = await contract.methods.isNewTrainer().call();
-    // // Update state with the result.
-    this.setState({ storageValue: response, newTrainer: response2 });
+    const response = await contract.methods.isNewTrainer().call(
+      {from: accounts[0]});
+    this.returnArrayOfPokemonOwned();
+    this.setState({ newTrainer: response });
   };
+
+  createStarterPokemon = async(nickname, pokemonNumber) => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.createStarterPokemon(nickname, pokemonNumber).send(
+      {from: accounts[0]},
+      ).then(function(res){
+        console.log("createStarterPokemon " + res);
+      });
+    console.log("createStarterPokemon " + response);
+  }
+
+  returnNumberOfPokemons = async() => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.returnNumberOfPokemons().call();
+    console.log("returnNumberOfPokemons " + response);
+  }
+
+  returnArrayOfPokemonOwned = async() => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.getPokemonCardsByOwner().call();
+    if (!!response) {
+      this.setState({ ownedPokemons: response });
+
+      var i;
+
+      for (i = 0; i < response.length; i++) {
+        let currentPokemonId = response[i];
+        console.log("currentPokemonId " + currentPokemonId);
+        const currentPokemon = await this.getPokemonInfo(currentPokemonId);
+        const { ownedPokemonsInfo } = this.state;
+        if (!!currentPokemon) {
+          ownedPokemonsInfo.push(currentPokemon);
+          this.setState({ ownedPokemonsInfo: ownedPokemonsInfo });
+        }
+      }
+    }
+
+
+    return response;
+  }
+
+  getPokemonInfo = async(pokemonId) => {
+    const { accounts, contract, ownedPokemonsInfo } = this.state;
+
+    const response = await contract.methods.getPokemonInfo(pokemonId).call();
+    const breedingInfo = await contract.methods.getPokemonBreedingDetails(pokemonId).call();
+    const battleInfo = await contract.methods.getPokemonBattleDetails(pokemonId).call();
+    const stats = await contract.methods.getPokemonStats(pokemonId).call();
+
+    const nickname = response["0"];
+    const pokemonName = response["1"];
+    const type1 = response["2"];
+    const type2 = response["3"];
+    const level = response["4"];
+    const pokemonNumber = response["5"];
+    const legendary = response["6"]
+
+    const breedingReadyTime = breedingInfo["0"];
+    const gender = breedingInfo["1"];
+    const fatherId = breedingInfo["2"];
+    const motherId = breedingInfo["3"];
+    const breedingWithId = breedingInfo["4"];
+
+    const battleReadyTime = battleInfo["0"];
+
+    const hp = stats["0"];
+    const attack = stats["1"];
+    const defense = stats["2"];
+    const specialAttack = stats["3"];
+    const specialDefense = stats["4"];
+    const speed = stats["5"]
+
+    return {
+      nickname: nickname,
+      pokemonName: pokemonName,
+      type1: type1,
+      type2: type2,
+      level: level,
+      pokemonNumber: pokemonNumber,
+      legendary: legendary,
+      breedingReadyTime: breedingReadyTime,
+      gender: gender,
+      fatherId: fatherId,
+      motherId: motherId,
+      breedingWithId: breedingWithId,
+      battleReadyTime: battleReadyTime,
+      hp: hp,
+      attack: attack,
+      defense: defense,
+      specialAttack: specialAttack,
+      specialDefense: specialDefense,
+      speeed: speed
+    }
+
+  }
 
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
-    } else if (!!!this.state.newTrainer){
+    } else if (!!!this.state.newTrainer && this.state.ownedPokemons.length!==0 && this.state.ownedPokemonsInfo.length!==0){
       return (
         <div className="App">
           <PokemonNavbar/>
           <Container> 
-            <MyTeam/>
+            <MyTeam pokemonOwned={this.state.ownedPokemonsInfo} />
           </Container>
         </div>
       );
@@ -81,7 +174,7 @@ class App extends Component {
       <div className="App">
         <PokemonNavbar/>
         <Container> 
-          <StarterPokemonForm handleChange={this.handleTrainerChange}/>
+          <StarterPokemonForm handleChange={this.handleTrainerChange} handleSubmit={this.createStarterPokemon}/>
         </Container>
       </div>
     );

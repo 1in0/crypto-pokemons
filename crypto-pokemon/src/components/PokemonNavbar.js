@@ -24,12 +24,13 @@ class PokemonNavbar extends Component {
 		} else {
 			return (
 				<Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
-					<Navbar.Brand href="#home">CryptoMons</Navbar.Brand>
+					<Navbar.Brand href="home">CryptoMons</Navbar.Brand>
 					<Navbar.Toggle aria-controls="responsive-navbar-nav" />
   					<Navbar.Collapse id="responsive-navbar-nav">
 						<Nav>
-							<Nav.Link href="#explore">Explore</Nav.Link>
-							<Nav.Link href="#team"> My Team </Nav.Link>
+							<Nav.Link href="explore">Explore</Nav.Link>
+							<Nav.Link href="team"> My Team </Nav.Link>
+							<Nav.Link href="marketplace"> Marketplace </Nav.Link>
 						</Nav>
 					</Navbar.Collapse>
 				</Navbar>
