@@ -1,7 +1,23 @@
 import {CardDeck, Card, Row, Col, Tabs, Tab} from 'react-bootstrap';
 import React, { Component } from "react";
-import MyPokemonCard from "./MyPokemonCard"
+import MyPokemonCard from "./MyPokemonCard";
+import MyAccount from "./MyAccount";
+
 class MyTeam extends Component {
+
+	state = {malePokemonOwned: [], femalePokemonOwned: []}
+
+	componentDidMount() {
+		let {malePokemonOwned, femalePokemonOwned} = this.state;
+		for (let i = 0; i < this.props.pokemonOwned.length; i++) {
+			if (!!this.props.pokemonOwned[i].gender) {
+				malePokemonOwned.push(this.props.pokemonOwned[i]);
+			} else {
+				femalePokemonOwned.push(this.props.pokemonOwned[i]);
+			}
+		}
+		this.setState({malePokemonOwned: malePokemonOwned, femalePokemonOwned: femalePokemonOwned});
+	}
 
   createCardDeck = () => {
     let cardDeck = []
@@ -13,6 +29,7 @@ class MyTeam extends Component {
       //Inner loop to create children
       for (let j = 0; j < 4; j++) {
       	let currentPokemon = this.props.pokemonOwned[c];
+      	console.log(currentPokemon);
       	if (c < this.props.pokemonOwned.length) {
       		children.push(
 		  		<Col style={{textAlign: "left"}}> 
@@ -28,12 +45,17 @@ class MyTeam extends Component {
 						specialAttack = {currentPokemon.specialAttack}
 						specialDefense = {currentPokemon.specialDefense}
 						battleReady = {true}
-						breedReady = {true}
+						breedReady = {currentPokemon.breedReady}
+						breedingReadyTime = {currentPokemon.breedingReadyTime}
+						battleReadyTime = {currentPokemon.battleReadyTime}
 						type1 = {currentPokemon.type1}
 						type2 = {currentPokemon.type2}
-						isSelling = {true}
+						isSelling = {currentPokemon.isSelling}
 						isSharing = {true}
 						myCard = {true}
+						validPartners = {currentPokemon.gender ? this.state.femalePokemonOwned : this.state.malePokemonOwned}
+						handlePokemonSell = {this.props.handlePokemonSell}
+						handleTakeOffMarket = {this.props.handleTakeOffMarket}
 		  			/>
 		  		</Col>
       			);
@@ -154,6 +176,14 @@ class MyTeam extends Component {
 						  </Row>
 
 						</CardDeck>
+					</Tab>
+					<Tab eventKey="eggs" title="Eggs">
+					Hi
+					</Tab>
+
+					<Tab eventKey="account" title="Account">
+						<br/>
+						<MyAccount account={this.props.account} tokenCount={this.props.pokemonOwned.length}/>
 					</Tab>
 				</Tabs>
 
