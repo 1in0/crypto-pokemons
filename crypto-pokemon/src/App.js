@@ -9,11 +9,10 @@ import MyTeam from "./MyTeam";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, newTrainer: false, ownedPokemons: [], ownedPokemonsInfo: [] };
+  state = { web3: null, accounts: null, contract: null, newTrainer: false, ownedPokemons: [], ownedPokemonsInfo: [] };
 
   constructor(props) {
     super(props);
-    console.log(props);
     this.handleTrainerChange = this.handleTrainerChange.bind(this);
   }
 
@@ -38,7 +37,7 @@ class App extends Component {
       if (deployedNetwork && deployedNetwork.address) {
         address = deployedNetwork.address;
       } else {
-        address = "0x7de19b161b1c1eb8f92d9d642606db92324e6f0f";
+        address = "0xA8955bf400e5c45FE2dd88fE72bFC5eb5E9A2d9e";
       }
       const instance = new web3.eth.Contract(
           PokemonCardMarketplace.abi,
@@ -80,7 +79,9 @@ class App extends Component {
 
   returnArrayOfPokemonOwned = async() => {
     const { accounts, contract } = this.state;
-    const response = await contract.methods.getPokemonCardsByOwner().call();
+    const response = await contract.methods.getPokemonCardsByOwner().call(
+      {from: accounts[0]},
+      );
     if (!!response) {
       this.setState({ ownedPokemons: response });
 
@@ -97,9 +98,19 @@ class App extends Component {
         }
       }
     }
-
-
     return response;
+  }
+
+  sellPokemon = async(pokemonId, price) => {
+    const { accounts, contract } = this.state;
+    const priceInEther = this.state.web3.utils.toWei(price, "ether");
+    const amountToSend = this.state.web3.utils.toWei("1.5", "ether");
+    const response = await contract.methods.createItem(pokemonId, priceInEther).send(
+      {from: accounts[0], value:amountToSend}
+      ).then(function(res){
+        console.log("sellPokemon " + res);
+      });
+    console.log("sellPokemon " + response);
   }
 
   getPokemonInfo = async(pokemonId) => {
@@ -109,6 +120,9 @@ class App extends Component {
     const breedingInfo = await contract.methods.getPokemonBreedingDetails(pokemonId).call();
     const battleInfo = await contract.methods.getPokemonBattleDetails(pokemonId).call();
     const stats = await contract.methods.getPokemonStats(pokemonId).call();
+    const isSelling = await contract.methods.isSelling(pokemonId).call();
+    const isPregnant = await contract.methods.isPregnant(pokemonId).call();
+    const breedReady = await contract.methods.isReadyToBreed(pokemonId).call();
 
     const nickname = response["0"];
     const pokemonName = response["1"];
@@ -134,6 +148,7 @@ class App extends Component {
     const speed = stats["5"]
 
     return {
+      pokemonId: pokemonId,
       nickname: nickname,
       pokemonName: pokemonName,
       type1: type1,
@@ -152,9 +167,22 @@ class App extends Component {
       defense: defense,
       specialAttack: specialAttack,
       specialDefense: specialDefense,
-      speeed: speed
+      speeed: speed,
+      isSelling: isSelling,
+      isPregnant: isPregnant,
+      breedReady: breedReady
     }
 
+  }
+
+  takeOffMarket = async(pokemonId) => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.takeOffMarketWithPokemonId(pokemonId).send(
+      {from: accounts[0]}
+      ).then(function(res){
+        console.log("takeOffMarket " + res);
+      });
+    console.log("takeOffMarket " + response);
   }
 
   render() {
@@ -165,7 +193,7 @@ class App extends Component {
         <div className="App">
           <PokemonNavbar/>
           <Container> 
-            <MyTeam pokemonOwned={this.state.ownedPokemonsInfo} />
+            <MyTeam pokemonOwned={this.state.ownedPokemonsInfo} handlePokemonSell={this.sellPokemon} handleTakeOffMarket={this.takeOffMarket} account={this.state.accounts[0]}/>
           </Container>
         </div>
       );
