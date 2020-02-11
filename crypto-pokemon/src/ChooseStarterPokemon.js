@@ -41,7 +41,7 @@ class ChooseStarterPokemon extends Component {
 			            <Badge variant="danger">Fire</Badge>
 			          </Card.Body>
 			          <Card.Footer>
-			            <small className="text-muted"><Button variant="primary" name="pokemonNumber" value={2} onClick={this.props.handleChange}>Pick Me</Button>{' '}</small>
+			            <small className="text-muted"><Button variant="primary" name="pokemonNumber" value={3} onClick={this.props.handleChange}>Pick Me</Button>{' '}</small>
 			          </Card.Footer>
 			        </Card>
 			        <Card>
