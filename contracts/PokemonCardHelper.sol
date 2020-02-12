@@ -38,7 +38,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		pokemons[_pokemonId].name = _newName;
 	}
 
-	function evolve(uint _pokemonId) external ownerOfPokemon(_pokemonId) {
+	function evolve(uint _pokemonId) external ownerOfPokemon(_pokemonId) returns(string memory, uint, uint32, uint32, uint32) {
 		require(isEvovalble(_pokemonId));
 		Pokemon storage pokemon = pokemons[_pokemonId];
 
@@ -58,6 +58,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		pokemon.type1 = basePokemon.type1;
 		pokemon.type2 = basePokemon.type2;
 		pokemon.legendary = basePokemon.legendary;
+		return (pokemon.name, pokemon.pokemonNumber, pokemon.baseStats.hp, pokemon.baseStats.attack, pokemon.baseStats.defense);
 
 	}
 
@@ -79,5 +80,25 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		return evolution[pokemonNumber] != 0 && evolution[pokemonNumber] != pokemonNumber;
 	}
 
+	function buyStarterPack() external payable returns(uint) {
+		require(msg.value == 1.5 ether, "a pack costs 1.5 ether");
+		pendingWithdrawals[owner()] += 1.5 ether;
+		return createRandomPokemon();
+	}
 
+    /**
+	Transfer the accumulated ETH by player. The balance is reset to 0 after withdraw.
+    **/
+    function withdraw() public {
+        uint256 amount = pendingWithdrawals[msg.sender];
+        pendingWithdrawals[msg.sender] = 0;
+        msg.sender.transfer(amount);
+    }
+
+    /**
+    Return the amount the user can withdrawl.
+    **/
+    function getPendingWithdrawals() public view returns(uint) {
+    	return pendingWithdrawals[msg.sender];
+    }
 }

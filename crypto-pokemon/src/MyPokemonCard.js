@@ -57,7 +57,7 @@ class MyPokemonCard extends Component {
 		const now = new Date();
 		const secondsSinceEpoch = Math.round(now.getTime() / 1000);
 		const battleWaitingProgress = Math.round((secondsSinceEpoch - battleReadyTime) / battleCoolOffTime * 100) % 100;
-		const breedWaitingProgress = Math.round((secondsSinceEpoch - breedReadyTime) / breedCoolOffTime * 100) % 100;
+		const breedWaitingProgress = (5-this.props.breedingTimeRemaining)/5*100;
 		return (
 			<Card>
 				<Card.Img variant="top" src={pokemonImageUrl} />
@@ -80,7 +80,7 @@ class MyPokemonCard extends Component {
 					<Row>
 						<Col sm={3}>🥚:</Col>
 						{breedReady ?
-							(<Col><BreedPokemon nickname={pokemonNickname} pokemonId={pokemonId} validPartners={validPartners}/></Col>)
+							(<Col><BreedPokemon nickname={pokemonNickname} pokemonId={pokemonId} validPartners={validPartners} breedWith={this.props.breedWith}/></Col>)
 							: (isPregnant) ? <Col sm={9} style={{paddingLeft: 0}}>Currently Pregnant </Col>
 								: ( <Col sm={9} style={{paddingLeft: 0, marginTop: 5}}> 
 									<ProgressBar now={breedWaitingProgress} label={breedWaitingProgress}

@@ -2,22 +2,10 @@ import {CardDeck, Card, Row, Col, Tabs, Tab} from 'react-bootstrap';
 import React, { Component } from "react";
 import MyPokemonCard from "./MyPokemonCard";
 import MyAccount from "./MyAccount";
+import BuyStarterPack from "./BuyStarterPack";
+import PregnantPokemons from "./PregnantPokemons";
 
 class MyTeam extends Component {
-
-	state = {malePokemonOwned: [], femalePokemonOwned: []}
-
-	componentDidMount() {
-		let {malePokemonOwned, femalePokemonOwned} = this.state;
-		for (let i = 0; i < this.props.pokemonOwned.length; i++) {
-			if (!!this.props.pokemonOwned[i].gender) {
-				malePokemonOwned.push(this.props.pokemonOwned[i]);
-			} else {
-				femalePokemonOwned.push(this.props.pokemonOwned[i]);
-			}
-		}
-		this.setState({malePokemonOwned: malePokemonOwned, femalePokemonOwned: femalePokemonOwned});
-	}
 
   createCardDeck = () => {
     let cardDeck = []
@@ -53,9 +41,11 @@ class MyTeam extends Component {
 						isSelling = {currentPokemon.isSelling}
 						isSharing = {true}
 						myCard = {true}
-						validPartners = {currentPokemon.gender ? this.state.femalePokemonOwned : this.state.malePokemonOwned}
+						validPartners = {currentPokemon.gender ? this.props.femalePokemonOwned : this.props.malePokemonOwned}
 						handlePokemonSell = {this.props.handlePokemonSell}
 						handleTakeOffMarket = {this.props.handleTakeOffMarket}
+						breedWith = {this.props.breedWith}
+						breedingTimeRemaining = {currentPokemon.breedingTimeRemaining}
 		  			/>
 		  		</Col>
       			);
@@ -177,13 +167,24 @@ class MyTeam extends Component {
 
 						</CardDeck>
 					</Tab>
-					<Tab eventKey="eggs" title="Eggs">
-					Hi
+					<Tab eventKey="pregnantpokemons" title="Pregnant Pokemons">
+						<br/>
+						<h2 style={{textAlign: "left"}}> Pregnant Pokemons </h2>
+						<PregnantPokemons pregnantPokemonOwned={this.props.pregnantPokemonOwned} giveBirth={this.props.giveBirth}/>
+					</Tab>
+					<Tab eventKey="shop" title="Shop">
+						<br/>
+						<h2 style={{textAlign: "left"}}> Shop </h2>
+						<BuyStarterPack handleBuyStarterPack={this.props.handleBuyStarterPack}/>
 					</Tab>
 
 					<Tab eventKey="account" title="Account">
 						<br/>
-						<MyAccount account={this.props.account} tokenCount={this.props.pokemonOwned.length}/>
+						<MyAccount account={this.props.account} 
+								   pendingWithdrawal={this.props.pendingWithdrawal} 
+								   tokenCount={this.props.pokemonOwned.length}
+								   handleWithdrawal={this.props.handleWithdrawal}
+						/>
 					</Tab>
 				</Tabs>
 

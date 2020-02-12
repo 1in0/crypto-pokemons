@@ -12,8 +12,8 @@ contract PokemonCardFactory is Base {
 
 	uint dnaDigits = 16;
 	uint dnaModulus = 10 ** dnaDigits;
-	uint battleCooldownTime = 1 days;
-	uint breedingCooldownTime = 10 days;
+	uint battleCooldownTime = 5;
+	uint breedingCooldownTime = 5;
 
 	struct Pokemon {
 		string nickname;
@@ -42,14 +42,16 @@ contract PokemonCardFactory is Base {
 		createStarterPokemon("Initial", 0);
 	}
 
-	function _generateRandomGender(string memory _str) private pure returns (bool) {
+	function _generateRandomGender(string memory _str) private view returns (bool) {
 		uint rand = uint(keccak256(abi.encodePacked(_str)));
-		return (rand % 2 == 0);
+		uint secureRand = uint(block.number + block.difficulty);
+		return ((rand + secureRand) % 2 == 0);
 	}
 
 	function _generateRandomDna(string memory _str) private view returns (uint) {
 		uint rand = uint(keccak256(abi.encodePacked(_str)));
-		return rand % dnaModulus;
+		uint secureRand = uint(block.number + block.difficulty);
+		return (rand + secureRand) % dnaModulus;
 	}
 
 	function _createPokemon(string memory _name, uint _dna, uint _fatherId, uint _motherId, uint _pokemonNumber) internal returns (uint) {
@@ -78,8 +80,8 @@ contract PokemonCardFactory is Base {
 			pokemonNumber: basePokemon.number,
 			legendary: basePokemon.legendary,
 			level: 1,
-			battleReadyTime: uint32(now + battleCooldownTime),
-			breedingReadyTime: uint32(now + breedingCooldownTime),
+			battleReadyTime: 0,
+			breedingReadyTime: 0,
 			gender: _generateRandomGender(_name),
 			dna: _dna,
 			fatherId: _fatherId,
@@ -102,12 +104,12 @@ contract PokemonCardFactory is Base {
 		return _createPokemon(_nickname, randDna, 0, 0, _pokemonNumber);
 	}
 
-	function _breedPokemon(string memory _nickname, uint _fatherId, uint _motherId) internal {
+	function _breedPokemon(string memory _nickname, uint _fatherId, uint _motherId) internal returns (uint){
 		Pokemon storage _mother = pokemons[_motherId];
 		uint _pokemonNumber = _mother.pokemonNumber;
-		uint _originPokemonNumber = origin[_pokemonNumber];
+		uint _originPokemonNumber = origin[_pokemonNumber]-1;
 		uint randDna = _generateRandomDna(_nickname);
-		_createPokemon(_nickname, randDna, _fatherId, _motherId, _originPokemonNumber);
+		return _createPokemon(_nickname, randDna, _fatherId, _motherId, _originPokemonNumber);
 	}
 
 	modifier ownerOfPokemon(uint _pokemonId) {
@@ -184,4 +186,13 @@ contract PokemonCardFactory is Base {
 
 		return (stats.hp, stats.attack, stats.defense, stats.specialAttack, stats.specialDefense, stats.speed);
 	}
+
+	function createRandomPokemon() internal returns(uint) {
+		// Avoid creating legendary pokemon. Don't want to make the game too easy :)
+		uint _pokemonNumber = (block.number + block.difficulty) % (basePokemons.length - 10);
+		uint _originPokemonNumber = origin[_pokemonNumber] - 1;
+		uint randDna = _generateRandomDna("NoName");
+		return _createPokemon("NoName", randDna, 0, 0, _originPokemonNumber);
+	}
+
 }

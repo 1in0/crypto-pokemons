@@ -35,6 +35,7 @@ contract PokemonCardBreeding is PokemonCardFactory {
 	function _isBreedingPermitted(uint _motherId, uint _fatherId) internal view returns (bool) {
 		require(msg.sender == pokemonToOwner[_motherId]);
 		require(msg.sender == pokemonToOwner[_fatherId]);
+		return true;
 	}
 
 	function _isValidMatingPair(Pokemon storage _mother, uint _motherId, 
@@ -45,7 +46,7 @@ contract PokemonCardBreeding is PokemonCardFactory {
 		}
 
 		// Check gender of parents
-		if (!_mother.gender || _father.gender) {
+		if (_mother.gender || !_father.gender) {
 			return false;
 		}
 
@@ -66,30 +67,34 @@ contract PokemonCardBreeding is PokemonCardFactory {
 		return true;
 	}
 
-	function _isReadyToGiveBirth(Pokemon storage _pokemon) internal view returns (bool) {
-		return (_pokemon.breedingReadyTime <= now);
+	function isReadyToGiveBirth(uint _pokemonId) public view returns (bool) {
+		Pokemon storage pokemon = pokemons[_pokemonId];
+		return _isReadyToGiveBirth(pokemon);
 	}
 
-	function giveBirth(uint _motherId) external positiveId(_motherId) {
+	function _isReadyToGiveBirth(Pokemon storage _pokemon) internal view returns (bool) {
+		return (_pokemon.breedingReadyTime <= block.number);
+	}
+
+	function giveBirth(uint _motherId) external positiveId(_motherId) returns (uint) {
 		// make sure pokemon is pregnant and ready to give birth
 		require(isPregnant(_motherId));
 		Pokemon storage mother = pokemons[_motherId];
 		require(_isReadyToGiveBirth(mother));
 
 		uint _fatherId = mother.breedingWithId;
-		_breedPokemon("noName", _fatherId, _motherId);
+		uint _newId = _breedPokemon("noName", _fatherId, _motherId);
 		delete mother.breedingWithId;
+		return _newId;
     }
 
 	function _triggerBreedingCooldown(Pokemon storage _pokemon) internal {
-		_pokemon.breedingReadyTime = uint32(now + breedingCooldownTime);
+		_pokemon.breedingReadyTime = uint32(block.number + breedingCooldownTime);
 	}
 
 	function _breedWith(uint _motherId, uint _fatherId) internal {
-		Pokemon storage father = pokemons[_fatherId];
 		Pokemon storage mother = pokemons[_motherId];
 		mother.breedingWithId = _fatherId;
-		_triggerBreedingCooldown(father);
 		_triggerBreedingCooldown(mother);
 		emit Pregnant(msg.sender, _motherId, _fatherId);
 	}
@@ -109,5 +114,16 @@ contract PokemonCardBreeding is PokemonCardFactory {
 		require(canBreedWith(_motherId, _fatherId));
 
 		_breedWith(_motherId, _fatherId);
+	}
+
+	function getBreedingTimeRemaining(uint _pokemonId) public view ownerOfPokemon(_pokemonId) returns (uint32) {
+		require(isPregnant(_pokemonId));
+		Pokemon storage pokemon = pokemons[_pokemonId];
+		if (_isReadyToGiveBirth(pokemon)) {
+			return uint32(0);
+		} else {
+			return uint32(pokemon.breedingReadyTime) - uint32(block.number);
+		}
+
 	}
 }

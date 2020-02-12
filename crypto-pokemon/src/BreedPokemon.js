@@ -10,6 +10,7 @@ class BreedPokemon extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.handleShow = this.handleShow.bind(this);
+    this.handleBreedWith = this.handleBreedWith.bind(this);
   }
 
   handleChange(event) {
@@ -27,6 +28,17 @@ class BreedPokemon extends Component {
     this.handleChange({target: {name: 'show', value: true}});
   };
 
+  handleBreedWith(event) {
+    const {name, value} = event.target;
+    // the pokemon with id 'name' is male
+    if (value === "true") {
+      this.props.breedWith(parseInt(this.props.pokemonId), parseInt(name));
+    } else {
+      this.props.breedWith(parseInt(name), parseInt(this.props.pokemonId));
+    }
+    this.handleClose();
+  }
+
   createValidPartnerTable = () => {
     let table = []
     if (!!this.props.validPartners) {
@@ -41,7 +53,7 @@ class BreedPokemon extends Component {
               <td>{currentPokemon.hp}</td>,
               <td>{currentPokemon.attack}</td>,
               <td>{currentPokemon.defense}</td>,
-              <td><Button variant="info">Breed</Button></td>];
+              <td><Button variant="info" onClick={this.handleBreedWith} value={currentPokemon.gender} name={currentPokemon.pokemonId}>Breed</Button></td>];
           table.push(<tr>{children}</tr>);
         }
 

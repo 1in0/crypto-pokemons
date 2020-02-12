@@ -5,11 +5,22 @@ import {Container} from 'react-bootstrap';
 import PokemonNavbar from "./components/PokemonNavbar";
 import StarterPokemonForm from "./StarterPokemonForm";
 import MyTeam from "./MyTeam";
+import POKEMON_MARKETPLACE_ADDRESS from "./Config";
 
 import "./App.css";
 
 class App extends Component {
-  state = { web3: null, accounts: null, contract: null, newTrainer: false, ownedPokemons: [], ownedPokemonsInfo: [] };
+  state = { web3: null,
+            accounts: null, 
+            contract: null, 
+            newTrainer: false, 
+            ownedPokemons: [], 
+            ownedPokemonsInfo: [],
+            pendingWithdrawal: 0,
+            malePokemonOwned: [],
+            femalePokemonOwned: [],
+            pregnantPokemonOwned: []
+         };
 
   constructor(props) {
     super(props);
@@ -37,7 +48,7 @@ class App extends Component {
       if (deployedNetwork && deployedNetwork.address) {
         address = deployedNetwork.address;
       } else {
-        address = "0xA8955bf400e5c45FE2dd88fE72bFC5eb5E9A2d9e";
+        address = POKEMON_MARKETPLACE_ADDRESS;
       }
       const instance = new web3.eth.Contract(
           PokemonCardMarketplace.abi,
@@ -45,20 +56,23 @@ class App extends Component {
       );
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.checkNewTrainer);
+      this.setState({ web3, accounts, contract: instance }, this.getTrainerInfo);
     } catch (error) {
       // Catch any errors for any of the above operations.
       console.error(error);
     }
   };
 
-  checkNewTrainer = async () => {
+  getTrainerInfo = async () => {
     const { accounts, contract } = this.state;
 
     const response = await contract.methods.isNewTrainer().call(
       {from: accounts[0]});
+    const pendingWithdrawal = await contract.methods.getPendingWithdrawals().call(
+      {from: accounts[0]});
+    const pendingWithdrawalInEther = this.state.web3.utils.fromWei(pendingWithdrawal, "ether");
     this.returnArrayOfPokemonOwned();
-    this.setState({ newTrainer: response });
+    this.setState({ newTrainer: response, pendingWithdrawal: pendingWithdrawalInEther});
   };
 
   createStarterPokemon = async(nickname, pokemonNumber) => {
@@ -84,17 +98,29 @@ class App extends Component {
       );
     if (!!response) {
       this.setState({ ownedPokemons: response });
-
       var i;
 
       for (i = 0; i < response.length; i++) {
         let currentPokemonId = response[i];
-        console.log("currentPokemonId " + currentPokemonId);
         const currentPokemon = await this.getPokemonInfo(currentPokemonId);
         const { ownedPokemonsInfo } = this.state;
         if (!!currentPokemon) {
           ownedPokemonsInfo.push(currentPokemon);
           this.setState({ ownedPokemonsInfo: ownedPokemonsInfo });
+          if (!!currentPokemon.gender) {
+            const {malePokemonOwned} = this.state;
+            malePokemonOwned.push(currentPokemon);
+            this.setState({malePokemonOwned: malePokemonOwned});
+          } else {
+            const {femalePokemonOwned} = this.state;
+            femalePokemonOwned.push(currentPokemon);
+            this.setState({femalePokemonOwned: femalePokemonOwned});
+          }
+          if (!!currentPokemon.isPregnant) {
+            const {pregnantPokemonOwned} = this.state;
+            pregnantPokemonOwned.push(currentPokemon);
+            this.setState({pregnantPokemonOwned: pregnantPokemonOwned});
+          }
         }
       }
     }
@@ -123,7 +149,11 @@ class App extends Component {
     const isSelling = await contract.methods.isSelling(pokemonId).call();
     const isPregnant = await contract.methods.isPregnant(pokemonId).call();
     const breedReady = await contract.methods.isReadyToBreed(pokemonId).call();
-
+    let breedingTimeRemaining = 0;
+    if (!!isPregnant) {
+      breedingTimeRemaining = await contract.methods.getBreedingTimeRemaining(pokemonId).call(
+        {from: this.state.accounts[0]});
+    }
     const nickname = response["0"];
     const pokemonName = response["1"];
     const type1 = response["2"];
@@ -170,7 +200,8 @@ class App extends Component {
       speeed: speed,
       isSelling: isSelling,
       isPregnant: isPregnant,
-      breedReady: breedReady
+      breedReady: breedReady,
+      breedingTimeRemaining: breedingTimeRemaining
     }
 
   }
@@ -185,6 +216,53 @@ class App extends Component {
     console.log("takeOffMarket " + response);
   }
 
+  handleWithdrawal = async() => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.withdraw().send(
+      {from: accounts[0]}
+      ).then(function(res){
+        console.log("handleWithdrawal " + res);
+      });
+    console.log("handleWithdrawal " + response);
+    this.setState({pendingWithdrawal: 0})
+  }
+
+  handleBuyStarterPack = async() => {
+    const { accounts, contract } = this.state;
+    const amountToSend = this.state.web3.utils.toWei("1.5", "ether");
+    const response = await contract.methods.buyStarterPack().send(
+      {from: accounts[0], value:amountToSend}
+      ).then(function(res){
+        console.log("handleBuyStarterPack " + res);
+      });
+    console.log("handleBuyStarterPack " + response);
+  }
+
+  breedWith = async(motherId, fatherId) => {
+    const { accounts, contract } = this.state;
+    const amountToSend = this.state.web3.utils.toWei("1.5", "finney");
+    const response = await contract.methods.breedWith(motherId, fatherId).send(
+      {from: accounts[0], value:amountToSend}
+      ).then(function(res){
+        console.log("breedWith " + res);
+      });
+    console.log("breedWith " + response);
+  }
+
+  giveBirth = async(motherId) => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.giveBirth(motherId).send(
+      {from: accounts[0]}
+      ).then(function(err, res){
+        console.log("giveBirth " + res);
+        return res;
+      });
+    console.log("giveBirth " + response);
+    return response;
+  }
+
+
+
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
@@ -193,7 +271,19 @@ class App extends Component {
         <div className="App">
           <PokemonNavbar/>
           <Container> 
-            <MyTeam pokemonOwned={this.state.ownedPokemonsInfo} handlePokemonSell={this.sellPokemon} handleTakeOffMarket={this.takeOffMarket} account={this.state.accounts[0]}/>
+            <MyTeam pokemonOwned={this.state.ownedPokemonsInfo} 
+                    handlePokemonSell={this.sellPokemon} 
+                    handleTakeOffMarket={this.takeOffMarket} 
+                    account={this.state.accounts[0]} 
+                    pendingWithdrawal={this.state.pendingWithdrawal}
+                    handleWithdrawal={this.handleWithdrawal}
+                    handleBuyStarterPack={this.handleBuyStarterPack}
+                    malePokemonOwned={this.state.malePokemonOwned}
+                    femalePokemonOwned={this.state.femalePokemonOwned}
+                    breedWith={this.breedWith}
+                    pregnantPokemonOwned={this.state.pregnantPokemonOwned}
+                    giveBirth={this.giveBirth}
+            />
           </Container>
         </div>
       );

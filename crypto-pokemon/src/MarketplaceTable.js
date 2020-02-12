@@ -3,6 +3,46 @@ import React, { Component } from "react";
 
 class MarketplaceTable extends Component {
 
+	constructor(props) {
+		super(props);
+		this.handleBuy = this.handleBuy.bind(this);
+	}
+
+
+	handleBuy(event) {
+		const {name, value} = event.target
+		this.props.buyPokemon(value);
+	};
+
+	createTableBody = () => {
+		let table = []
+		for (let i = 0; i < this.props.marketplaceItems.length; i++) {
+			let currentItem = this.props.marketplaceItems[i];
+			let children = [
+			      <td style={{ padding: .2}}><img src={"pokemon_images/medium/" + String(currentItem.pokemonNumber).padStart(3,'0') + '.png'} alt="test"/></td>,
+			      <td>{currentItem.nickname}</td>,
+			      <td>{currentItem.type1}</td>,
+			      <td>{currentItem.hp}</td>,
+			      <td>{currentItem.attack}</td>,
+			      <td>{currentItem.defense}</td>,
+			      <td>{currentItem.specialAttack}</td>,
+			      <td>{currentItem.specialDefense}</td>,
+			      <td>{currentItem.level}</td>,
+			      <td>{currentItem.gender ? "male" : "female"}</td>,
+			      <td>{currentItem.price + " Ether"}</td>,
+			      <td>
+			      {this.props.account !== currentItem.seller && 
+			      	<Button variant="primary" size="sm" block name="buyPokemon" value={i} onClick={this.handleBuy}>Buy</Button>
+			      }
+			      </td>]
+
+			console.log("Children " + children.length);
+			table.push(<tr>{children}</tr>);
+		}
+		return table;
+	}
+
+
 	render() {
 		return (
 			<Table responsive>
@@ -18,23 +58,12 @@ class MarketplaceTable extends Component {
 			      <th>SP-DEF</th>
 			      <th>LV</th>
 			      <th>Gender</th>
+			      <th>Price</th>
 			      <th>Action</th>
 			    </tr>
 			  </thead>
 			  <tbody>
-			    <tr>
-			      <td style={{ padding: .2}}><img src={"pokemon_images/medium/" + String(1).padStart(3,'0') + '.png'} alt="test"/></td>
-			      <td>Bulbasour</td>
-			      <td>223</td>
-			      <td>Ground</td>
-			      <td>12</td>
-			      <td>123</td>
-			      <td>23</td>
-			      <td>11</td>
-			      <td>22</td>
-			      <td>Male</td>
-			      <td><Button variant="primary" size="sm" block>Buy</Button></td>
-			    </tr>
+			  	{this.createTableBody()}
 			  </tbody>
 			</Table>
 		)
