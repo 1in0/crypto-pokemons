@@ -175,7 +175,7 @@ class MyTeam extends Component {
 					<Tab eventKey="shop" title="Shop">
 						<br/>
 						<h2 style={{textAlign: "left"}}> Shop </h2>
-						<BuyStarterPack handleBuyStarterPack={this.props.handleBuyStarterPack}/>
+						<BuyStarterPack handleBuyStarterPack={this.props.handleBuyStarterPack} handleBuyRarePack={this.props.handleBuyRarePack}/>
 					</Tab>
 
 					<Tab eventKey="account" title="Account">

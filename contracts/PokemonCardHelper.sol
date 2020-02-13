@@ -81,9 +81,15 @@ contract PokemonCardHelper is PokemonCardBreeding {
 	}
 
 	function buyStarterPack() external payable returns(uint) {
-		require(msg.value == 1.5 ether, "a pack costs 1.5 ether");
+		require(msg.value == 1.5 ether, "a starter pack costs 1.5 ether");
 		pendingWithdrawals[owner()] += 1.5 ether;
 		return createRandomPokemon();
+	}
+
+	function buyRarePack() external payable returns(uint) {
+		require(msg.value == 15 ether, "a rare pack costs 15 ether");
+		pendingWithdrawals[owner()] += 15 ether;
+		return createRarerRandomPokemon();
 	}
 
     /**

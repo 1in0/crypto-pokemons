@@ -14,6 +14,7 @@ contract PokemonCardFactory is Base {
 	uint dnaModulus = 10 ** dnaDigits;
 	uint battleCooldownTime = 5;
 	uint breedingCooldownTime = 5;
+	uint randNonce = 0;
 
 	struct Pokemon {
 		string nickname;
@@ -190,6 +191,14 @@ contract PokemonCardFactory is Base {
 	function createRandomPokemon() internal returns(uint) {
 		// Avoid creating legendary pokemon. Don't want to make the game too easy :)
 		uint _pokemonNumber = (block.number + block.difficulty) % (basePokemons.length - 10);
+		uint _originPokemonNumber = origin[_pokemonNumber] - 1;
+		uint randDna = _generateRandomDna("NoName");
+		return _createPokemon("NoName", randDna, 0, 0, _originPokemonNumber);
+	}
+
+	function createRarerRandomPokemon() internal returns(uint) {
+		// Avoid creating legendary pokemon. Don't want to make the game too easy :)
+		uint _pokemonNumber = basePokemons.length - 1 - (block.number + block.difficulty) % 10;
 		uint _originPokemonNumber = origin[_pokemonNumber] - 1;
 		uint randDna = _generateRandomDna("NoName");
 		return _createPokemon("NoName", randDna, 0, 0, _originPokemonNumber);

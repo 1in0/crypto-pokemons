@@ -238,6 +238,17 @@ class App extends Component {
     console.log("handleBuyStarterPack " + response);
   }
 
+  handleBuyRarePack = async() => {
+    const { accounts, contract } = this.state;
+    const amountToSend = this.state.web3.utils.toWei("15", "ether");
+    const response = await contract.methods.buyRarePack().send(
+      {from: accounts[0], value:amountToSend}
+      ).then(function(res){
+        console.log("handleBuyRarePack " + res);
+      });
+    console.log("handleBuyRarePack " + response);
+  }
+
   breedWith = async(motherId, fatherId) => {
     const { accounts, contract } = this.state;
     const amountToSend = this.state.web3.utils.toWei("1.5", "finney");
@@ -283,6 +294,7 @@ class App extends Component {
                     breedWith={this.breedWith}
                     pregnantPokemonOwned={this.state.pregnantPokemonOwned}
                     giveBirth={this.giveBirth}
+                    handleBuyRarePack={this.handleBuyRarePack}
             />
           </Container>
         </div>
