@@ -2,7 +2,7 @@ pragma solidity >=0.5.0 <0.6.0;
 
 import "./PokemonCardOwnership.sol";
 
-// 0xe3a0ec5cb60318a00ff9efc6371cfcdb836bbcf2
+
 contract PokemonCardMarketplace is PokemonCardOwnership {
 
     struct Market {

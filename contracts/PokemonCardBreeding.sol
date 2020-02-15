@@ -1,8 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./PokemonCardFactory.sol";
+import "./PokemonCardShare.sol";
 
-contract PokemonCardBreeding is PokemonCardFactory {
+contract PokemonCardBreeding is PokemonCardShare {
 
 	event Pregnant(address owner, uint motherId, uint fatherId);
 	uint public birthFee = 1.5 finney;
