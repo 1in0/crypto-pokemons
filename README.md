@@ -34,3 +34,14 @@ Web3 used to exchange transactions.
 - User able to verify properties and states of any Cryptomons.
 - Game logic should be secure.
     - Transactions are atomic.
+    
+# Installation Guide
+```
+ganache-cli --gasLimit=0x1fffffffffffff --allowUnlimitedContractSize -e 1000000000
+truffle migrate
+npm start
+```
+
+Transfer the JSON contract into the /crypto-pokemon/src/contracts/
+Change the ABI Address to your built one in `Config.js`
+
