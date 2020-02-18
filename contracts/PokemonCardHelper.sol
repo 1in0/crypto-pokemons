@@ -1,9 +1,9 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 import "./PokemonCardBreeding.sol";
+import "./ReentrancyGuard.sol";
 
-contract PokemonCardHelper is PokemonCardBreeding {
-	uint levelUpFee = 0.001 ether;
+contract PokemonCardHelper is PokemonCardBreeding, ReentrancyGuard {
 	mapping (address => uint) pendingWithdrawals;
 
 	event PokemonLevelUp(uint _pokemonId, uint newLevel);
@@ -14,13 +14,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		_;
 	}
 
-	function setLevelUpFee(uint _fee) external onlyOwner {
-		levelUpFee = _fee;
-	}
-
-	function levelUp(uint _pokemonId) external payable ownerOfPokemon(_pokemonId) {
-		require(msg.value == levelUpFee);
-		pendingWithdrawals[address(this)] += msg.value;
+	function levelUp(uint _pokemonId) public ownerOfPokemon(_pokemonId) {
 		Pokemon storage pokemon = pokemons[_pokemonId];
 		pokemon.level = pokemons[_pokemonId].level.add(1);
 
@@ -32,13 +26,20 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		pokemon.baseStats.speed = pokemon.baseStats.speed.add(2);
 
 		emit PokemonLevelUp(_pokemonId, pokemon.level);
+
+		if (isEvovalble(_pokemonId)) {
+			uint rand = randMod(500);
+			if (rand > 450) {
+				evolve(_pokemonId);
+			}
+		}
 	}
 
-	function changeName(uint _pokemonId, string calldata _newName) external aboveLevel(2, _pokemonId) {
+	function changeName(uint _pokemonId, string calldata _newName) external {
 		pokemons[_pokemonId].name = _newName;
 	}
 
-	function evolve(uint _pokemonId) external ownerOfPokemon(_pokemonId) returns(string memory, uint, uint32, uint32, uint32) {
+	function evolve(uint _pokemonId) internal ownerOfPokemon(_pokemonId) {
 		require(isEvovalble(_pokemonId));
 		Pokemon storage pokemon = pokemons[_pokemonId];
 
@@ -58,7 +59,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
 		pokemon.type1 = basePokemon.type1;
 		pokemon.type2 = basePokemon.type2;
 		pokemon.legendary = basePokemon.legendary;
-		return (pokemon.name, pokemon.pokemonNumber, pokemon.baseStats.hp, pokemon.baseStats.attack, pokemon.baseStats.defense);
+		emit PokemonEvolve(_pokemonId);
 
 	}
 
@@ -95,7 +96,7 @@ contract PokemonCardHelper is PokemonCardBreeding {
     /**
 	Transfer the accumulated ETH by player. The balance is reset to 0 after withdraw.
     **/
-    function withdraw() public {
+    function withdraw() public nonReentrant() {
         uint256 amount = pendingWithdrawals[msg.sender];
         pendingWithdrawals[msg.sender] = 0;
         msg.sender.transfer(amount);

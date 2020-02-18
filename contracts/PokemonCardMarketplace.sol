@@ -17,7 +17,7 @@ contract PokemonCardMarketplace is PokemonCardOwnership {
     mapping (uint => bool) private _pokemonInMarket;
     mapping (uint => uint) private _pokemonIdToItemId;
     uint private _totalPokemonsOnMarket;
-    uint public creationFee = 1.5 finney;
+    uint public creationFee = 0.1 ether;
 
     event SoldPokemon(uint itemId, uint pokemonId, address buyer);
     event NewItem(uint itemId, uint pokemonId, address seller);
@@ -97,14 +97,6 @@ contract PokemonCardMarketplace is PokemonCardOwnership {
         _totalPokemonsOnMarket = _totalPokemonsOnMarket.sub(1);
         emit TakenOffMarket(_itemId, msg.sender);
     }
-
-    // function changePrice(uint _itemId, uint _newPrice) public {
-    //     Market storage item = market[_itemId];
-    //     uint pokemonId = item.pokemonId;
-    //     require(pokemonToOwner[pokemonId] == msg.sender);
-    //     item.price = _newPrice;
-    //     emit PriceChange(_itemId, msg.sender, _newPrice);
-    // }
 
     function getMarketCount() public view returns (uint) {
         return market.length;

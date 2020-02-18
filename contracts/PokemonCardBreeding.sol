@@ -126,4 +126,10 @@ contract PokemonCardBreeding is PokemonCardShare {
 		}
 
 	}
+
+	function abortBirth(uint _pokemonId) internal {
+		require(isPregnant(_pokemonId));
+		Pokemon storage mother = pokemons[_pokemonId];
+		delete mother.breedingWithId;
+	}
 }

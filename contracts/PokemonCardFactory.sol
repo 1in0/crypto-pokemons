@@ -10,11 +10,11 @@ contract PokemonCardFactory is Base {
 
 	event NewPokemon(uint pokemonId, string name, uint dna);
 
+	uint randNonce = 0;
 	uint dnaDigits = 16;
 	uint dnaModulus = 10 ** dnaDigits;
 	uint battleCooldownTime = 5;
 	uint breedingCooldownTime = 5;
-	uint randNonce = 0;
 
 	struct Pokemon {
 		string nickname;
@@ -43,18 +43,31 @@ contract PokemonCardFactory is Base {
 		createStarterPokemon("Initial", 0);
 	}
 
-	function _generateRandomGender(string memory _str) private view returns (bool) {
-		uint rand = uint(keccak256(abi.encodePacked(_str)));
-		uint secureRand = uint(block.number + block.difficulty);
-		return ((rand + secureRand) % 2 == 0);
+	/**
+		Create a random number between 0 and _modulus
+	**/
+    function randMod(uint _modulus) internal returns(uint) {
+        randNonce = randNonce.add(1);
+        return uint(keccak256(abi.encodePacked(block.number, msg.sender, randNonce))) % _modulus;
+    }
+
+	/**
+		Create a random gender indicated by a boolean
+	**/
+	function _generateRandomGender() private returns (bool) {
+		return (randMod(2) == 0);
 	}
 
-	function _generateRandomDna(string memory _str) private view returns (uint) {
-		uint rand = uint(keccak256(abi.encodePacked(_str)));
-		uint secureRand = uint(block.number + block.difficulty);
-		return (rand + secureRand) % dnaModulus;
+	/**
+		Create a random dna
+	**/
+	function _generateRandomDna() private returns (uint) {
+		return randMod(dnaModulus);
 	}
 
+	/**
+		Create a new Pokemon
+	**/
 	function _createPokemon(string memory _name, uint _dna, uint _fatherId, uint _motherId, uint _pokemonNumber) internal returns (uint) {
 		uint32[] memory variant = new uint32[](6);
 		uint clone = _dna;
@@ -83,7 +96,7 @@ contract PokemonCardFactory is Base {
 			level: 1,
 			battleReadyTime: 0,
 			breedingReadyTime: 0,
-			gender: _generateRandomGender(_name),
+			gender: _generateRandomGender(),
 			dna: _dna,
 			fatherId: _fatherId,
 			motherId: _motherId,
@@ -98,26 +111,38 @@ contract PokemonCardFactory is Base {
 		return id;
 	}
 
+	/**
+		Create a new Starter Pokemon
+	**/
 	function createStarterPokemon(string memory _nickname, uint _pokemonNumber) public returns (uint){
 		require(ownerPokemonCount[msg.sender] == 0);
 		require(_pokemonNumber == 0 || _pokemonNumber == 3 || _pokemonNumber == 6);
-		uint randDna = _generateRandomDna(_nickname);
+		uint randDna = _generateRandomDna();
 		return _createPokemon(_nickname, randDna, 0, 0, _pokemonNumber);
 	}
 
+	/**
+		Breed Pokemon using mother's orginal specie is determined.
+	**/
 	function _breedPokemon(string memory _nickname, uint _fatherId, uint _motherId) internal returns (uint){
 		Pokemon storage _mother = pokemons[_motherId];
 		uint _pokemonNumber = _mother.pokemonNumber;
 		uint _originPokemonNumber = origin[_pokemonNumber]-1;
-		uint randDna = _generateRandomDna(_nickname);
+		uint randDna = _generateRandomDna();
 		return _createPokemon(_nickname, randDna, _fatherId, _motherId, _originPokemonNumber);
 	}
 
+	/**
+		Return the owner of the Pokemon
+	**/
 	modifier ownerOfPokemon(uint _pokemonId) {
 		require(msg.sender == pokemonToOwner[_pokemonId]);
 		_;
 	}
 
+	/**
+		Check whether the player is a new trainer.
+	**/
 	function isNewTrainer() public view returns (bool) {
 		return (ownerPokemonCount[msg.sender] == 0);
 	}
@@ -188,20 +213,34 @@ contract PokemonCardFactory is Base {
 		return (stats.hp, stats.attack, stats.defense, stats.specialAttack, stats.specialDefense, stats.speed);
 	}
 
+	/**
+		Create a random Pokemon.
+	**/
 	function createRandomPokemon() internal returns(uint) {
 		// Avoid creating legendary pokemon. Don't want to make the game too easy :)
-		uint _pokemonNumber = (block.number + block.difficulty) % (basePokemons.length - 10);
+		uint _pokemonNumber = randMod(basePokemons.length - 10);
 		uint _originPokemonNumber = origin[_pokemonNumber] - 1;
-		uint randDna = _generateRandomDna("NoName");
+		uint randDna = _generateRandomDna();
 		return _createPokemon("NoName", randDna, 0, 0, _originPokemonNumber);
 	}
 
+	/**
+		Create a random Pokemon, with high probability of being legendary
+	**/
 	function createRarerRandomPokemon() internal returns(uint) {
 		// Avoid creating legendary pokemon. Don't want to make the game too easy :)
-		uint _pokemonNumber = basePokemons.length - 1 - (block.number + block.difficulty) % 10;
+		uint _pokemonNumber = basePokemons.length - 1 - randMod(10);
 		uint _originPokemonNumber = origin[_pokemonNumber] - 1;
-		uint randDna = _generateRandomDna("NoName");
+		uint randDna = _generateRandomDna();
 		return _createPokemon("NoName", randDna, 0, 0, _originPokemonNumber);
+	}
+
+	function getAllPokemonCards() external view returns (uint[] memory) {
+		uint[] memory result = new uint[](pokemons.length);
+		for (uint i = 0; i < pokemons.length; i++) {
+			result[i] = i;
+		}
+		return result;
 	}
 
 }

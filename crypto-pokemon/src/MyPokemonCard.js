@@ -2,19 +2,23 @@ import {CardDeck, Card, Row, Col, Button, Badge, ProgressBar} from 'react-bootst
 import React, { Component } from "react";
 import SellPokemonButton from "./SellPokemonButton";
 import BreedPokemon from "./BreedPokemon";
+import SharePokemonButton from "./SharePokemonButton";
 
 class MyPokemonCard extends Component {
 
-	state = {isSelling: false, breedReady: false};
+	state = {isSelling: false, breedReady: false, isSharing: false};
 
 	constructor(props) {
 		super(props);
 		this.handleTakeOffMarket = this.handleTakeOffMarket.bind(this);
 		this.handleIsSelling = this.handleIsSelling.bind(this);
+		this.handleIsSharing = this.handleIsSharing.bind(this);
+		this.handleUnshare = this.handleUnshare.bind(this);
 	}
 
 	componentDidMount() {
 		this.setState({isSelling: this.props.isSelling});
+		this.setState({isSharing: this.props.isSharing});
 	}
 
 	handleTakeOffMarket(event) {
@@ -25,6 +29,16 @@ class MyPokemonCard extends Component {
 
 	handleIsSelling() {
 		this.setState({isSelling: true});
+	}
+
+	handleIsSharing() {
+		this.setState({isSharing: true});
+	}
+
+	handleUnshare(event) {
+		const {value} = event.target
+		this.props.handleUnshare(value);
+		this.setState({isSharing: false});
 	}
 
 	render() {
@@ -43,7 +57,8 @@ class MyPokemonCard extends Component {
 		const type1 = this.props.type1;
 		const type2 = this.props.type2;
 		const isSelling = this.state.isSelling;
-		const isSharing = this.props.isSharing;
+		const isSharing = this.state.isSharing;
+		const gender = this.props.gender ? '♂️': '♀️';
 		// this.setState({isSelling: this.props.isSelling});
 		const myCard = this.props.myCard;
 		const isPregnant = this.props.isPregnant;
@@ -58,12 +73,13 @@ class MyPokemonCard extends Component {
 		const secondsSinceEpoch = Math.round(now.getTime() / 1000);
 		const battleWaitingProgress = Math.round((secondsSinceEpoch - battleReadyTime) / battleCoolOffTime * 100) % 100;
 		const breedWaitingProgress = (5-this.props.breedingTimeRemaining)/5*100;
+
 		return (
 			<Card>
 				<Card.Img variant="top" src={pokemonImageUrl} />
 				<Card.Body>
-					<Card.Title>{pokemonNickname}</Card.Title>
-					<Card.Subtitle className="mb-2 text-muted">{pokemonName + ' Level: ' + level}</Card.Subtitle>
+					<Card.Title>{pokemonNickname + ' ' + gender}</Card.Title>
+					<Card.Subtitle className="mb-2 text-muted">{pokemonName + ' Level: ' + level }</Card.Subtitle>
 
 					<Row>
 						<Col > ❤️: {hp} </Col>
@@ -77,6 +93,7 @@ class MyPokemonCard extends Component {
 						<Col> 💪: {specialDefense} </Col>
 					</Row>
 					
+					{myCard && 
 					<Row>
 						<Col sm={3}>🥚:</Col>
 						{breedReady ?
@@ -87,6 +104,7 @@ class MyPokemonCard extends Component {
 									/></Col>)
 						}
 					</Row>
+					}
 					<Row>
 						<Col sm={3}>🗡️:</Col>
 						{battleReady ?
@@ -106,9 +124,9 @@ class MyPokemonCard extends Component {
 						)
 					}
 					{isSharing ? ( 
-						<Col > <Button variant="danger" size="sm" style={{fontSize: ".750rem"}} block>Stop Share</Button> </Col>
+						<Col > <Button variant="danger" size="sm" style={{fontSize: ".750rem"}} block name="stopShare" value={pokemonId} onClick={this.handleUnshare}>Stop Share</Button> </Col>
 						) : (
-						<Col > <Button variant="primary" size="sm" style={{fontSize: ".750rem"}} block>Share</Button> </Col>
+						<Col > <SharePokemonButton nickname={pokemonNickname} pokemonId={pokemonId} handleIsSharing={this.handleIsSharing} handlePokemonShareCard={this.props.handlePokemonShareCard}/> </Col>
 						)
 					}
 				</Row>

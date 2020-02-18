@@ -5,6 +5,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Marketplace from './Marketplace';
+import Explore from './Explore';
 import { Route, Link, BrowserRouter as Router } from 'react-router-dom';
 
 const routing = (
@@ -13,6 +14,7 @@ const routing = (
       <Route exact path="/" component={App} />
       <Route path="/team" component={App} />
       <Route path="/marketplace" component={Marketplace} />
+      <Route path="/explore" component={Explore} />
     </div>
   </Router>
 )

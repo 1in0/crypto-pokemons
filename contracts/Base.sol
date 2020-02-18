@@ -423,9 +423,5 @@ contract Base is Ownable {
 		origin[151] = 151;
 	}
 
-	function max(uint a, uint b) private pure returns (uint) {
-		return a > b ? a : b;
-	}
-
 
 }

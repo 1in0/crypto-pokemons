@@ -19,12 +19,16 @@ class App extends Component {
             pendingWithdrawal: 0,
             malePokemonOwned: [],
             femalePokemonOwned: [],
-            pregnantPokemonOwned: []
+            pregnantPokemonOwned: [],
+            sharedPokemonInfo: [],
+            subscribedEvents: {}
          };
 
   constructor(props) {
     super(props);
     this.handleTrainerChange = this.handleTrainerChange.bind(this);
+    this.addPokemonToSharedState = this.addPokemonToSharedState.bind(this);
+    this.addPokemonToState = this.addPokemonToState.bind(this);
   }
 
   handleTrainerChange(event) {
@@ -57,6 +61,8 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance }, this.getTrainerInfo);
+
+      this.subscribeLogEvent(instance, "NewPokemon");
     } catch (error) {
       // Catch any errors for any of the above operations.
       console.error(error);
@@ -72,6 +78,7 @@ class App extends Component {
       {from: accounts[0]});
     const pendingWithdrawalInEther = this.state.web3.utils.fromWei(pendingWithdrawal, "ether");
     this.returnArrayOfPokemonOwned();
+    this.getSharedPokemonCardsByOwner();
     this.setState({ newTrainer: response, pendingWithdrawal: pendingWithdrawalInEther});
   };
 
@@ -103,34 +110,39 @@ class App extends Component {
       for (i = 0; i < response.length; i++) {
         let currentPokemonId = response[i];
         const currentPokemon = await this.getPokemonInfo(currentPokemonId);
-        const { ownedPokemonsInfo } = this.state;
         if (!!currentPokemon) {
-          ownedPokemonsInfo.push(currentPokemon);
-          this.setState({ ownedPokemonsInfo: ownedPokemonsInfo });
-          if (!!currentPokemon.gender) {
-            const {malePokemonOwned} = this.state;
-            malePokemonOwned.push(currentPokemon);
-            this.setState({malePokemonOwned: malePokemonOwned});
-          } else {
-            const {femalePokemonOwned} = this.state;
-            femalePokemonOwned.push(currentPokemon);
-            this.setState({femalePokemonOwned: femalePokemonOwned});
-          }
-          if (!!currentPokemon.isPregnant) {
-            const {pregnantPokemonOwned} = this.state;
-            pregnantPokemonOwned.push(currentPokemon);
-            this.setState({pregnantPokemonOwned: pregnantPokemonOwned});
-          }
+          this.addPokemonToState(currentPokemon);
         }
       }
     }
     return response;
   }
 
+  addPokemonToState = (currentPokemon) => {
+    const { accounts, contract, ownedPokemonsInfo } = this.state;
+    currentPokemon.myCard = true;
+    ownedPokemonsInfo.push(currentPokemon);
+    this.setState({ ownedPokemonsInfo: ownedPokemonsInfo });
+    if (!!currentPokemon.gender) {
+      const {malePokemonOwned} = this.state;
+      malePokemonOwned.push(currentPokemon);
+      this.setState({malePokemonOwned: malePokemonOwned});
+    } else {
+      const {femalePokemonOwned} = this.state;
+      femalePokemonOwned.push(currentPokemon);
+      this.setState({femalePokemonOwned: femalePokemonOwned});
+    }
+    if (!!currentPokemon.isPregnant) {
+      const {pregnantPokemonOwned} = this.state;
+      pregnantPokemonOwned.push(currentPokemon);
+      this.setState({pregnantPokemonOwned: pregnantPokemonOwned});
+    }
+  }
+
   sellPokemon = async(pokemonId, price) => {
     const { accounts, contract } = this.state;
     const priceInEther = this.state.web3.utils.toWei(price, "ether");
-    const amountToSend = this.state.web3.utils.toWei("1.5", "ether");
+    const amountToSend = this.state.web3.utils.toWei("0.1", "ether");
     const response = await contract.methods.createItem(pokemonId, priceInEther).send(
       {from: accounts[0], value:amountToSend}
       ).then(function(res){
@@ -149,6 +161,7 @@ class App extends Component {
     const isSelling = await contract.methods.isSelling(pokemonId).call();
     const isPregnant = await contract.methods.isPregnant(pokemonId).call();
     const breedReady = await contract.methods.isReadyToBreed(pokemonId).call();
+    const isSharing = await contract.methods.isSharing(pokemonId).call();
     let breedingTimeRemaining = 0;
     if (!!isPregnant) {
       breedingTimeRemaining = await contract.methods.getBreedingTimeRemaining(pokemonId).call(
@@ -201,7 +214,8 @@ class App extends Component {
       isSelling: isSelling,
       isPregnant: isPregnant,
       breedReady: breedReady,
-      breedingTimeRemaining: breedingTimeRemaining
+      breedingTimeRemaining: breedingTimeRemaining,
+      isSharing: isSharing
     }
 
   }
@@ -272,7 +286,83 @@ class App extends Component {
     return response;
   }
 
+  getSharedPokemonCardsByOwner = async() => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.getSharedPokemonCardsByOwner().call({from: accounts[0]});
+    if (!!response) {
+      var i = 0;
+      for (i = 0; i < response.length; i++) {
+        let currentPokemonId = response[i];
+        const currentPokemon = await this.getPokemonInfo(currentPokemonId);
+        if (!!currentPokemon) {
+          this.addPokemonToSharedState(currentPokemon);
+        }
+      }
+      console.log("getSharedPokemonCardsByOwner=========== " + response);
+    }
+    return response;
+  }
 
+  addPokemonToSharedState = (pokemon) => {
+    const { sharedPokemonInfo } = this.state;
+    pokemon.myCard = false;
+    sharedPokemonInfo.push(pokemon);
+    this.setState({ sharedPokemonInfo: sharedPokemonInfo });
+  }
+
+  unshareCard = async(pokemonId) => {
+    const { accounts, contract } = this.state;
+    const response = await contract.methods.unshareCard(pokemonId).send(
+      {from: accounts[0]}
+      ).then(function(res){
+        console.log("unshareCard " + res);
+      });
+    console.log("unshareCard " + response);
+  }
+
+  shareCard = async(pokemonId, address) => {
+    if (this.state.web3.utils.isAddress(address)) {
+      const { accounts, contract } = this.state;
+      const response = await contract.methods.shareCard(pokemonId, address).send(
+        {from: accounts[0]}
+        ).then(function(res){
+          console.log("shareCard " + res);
+        });
+      console.log("shareCard " + response);
+    }
+  }
+
+  subscribeLogEvent = (contract, eventName) => {
+    const eventJsonInterface = this.state.web3.utils._.find(
+      contract._jsonInterface,
+      o => o.name === eventName && o.type === 'event',
+    )
+    const subscription = this.state.web3.eth.subscribe('logs', {
+      address: contract.options.address,
+      topics: [eventJsonInterface.signature]
+    }, (error, result) => {
+      if (!error) {
+        const eventObj = this.state.web3.eth.abi.decodeLog(
+          eventJsonInterface.inputs,
+          result.data,
+          result.topics.slice(1)
+        )
+        console.log(`New ${eventName}!`, eventObj)
+        const currentPokemonId = eventObj.pokemonId;
+        var self = this;
+        this.getPokemonInfo(currentPokemonId).then(function(res) {
+          if (!!res) {
+            self.addPokemonToState(res);
+          }
+        });
+
+      }
+    });
+    const {subscribedEvents} = this.state;
+
+    subscribedEvents[eventName] = subscription
+    this.setState({subscribedEvents: subscribedEvents});
+  }
 
   render() {
     if (!this.state.web3) {
@@ -295,6 +385,9 @@ class App extends Component {
                     pregnantPokemonOwned={this.state.pregnantPokemonOwned}
                     giveBirth={this.giveBirth}
                     handleBuyRarePack={this.handleBuyRarePack}
+                    sharedPokemonInfo={this.state.sharedPokemonInfo}
+                    handleUnshare={this.unshareCard}
+                    handlePokemonShareCard={this.shareCard}
             />
           </Container>
         </div>
