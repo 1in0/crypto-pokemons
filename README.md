@@ -43,6 +43,7 @@ npm start
 ```
 
 Transfer the JSON contract into the /crypto-pokemon/src/contracts/
+
 Change the ABI Address to your built one in `Config.js`
 
 
